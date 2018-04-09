@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+
+  <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0' name='viewport' />
+    <meta name="viewport" content="width=device-width" />
+
+    <link href="bootstrap3/css/bootstrap.css" rel="stylesheet" />
+		<link href="assets/css/gsdk.css" rel="stylesheet" />
+    <link href="assets/css/demo.css" rel="stylesheet" />
+
+    <!--     Font Awesome     -->
+    <link href="bootstrap3/css/font-awesome.css" rel="stylesheet">
+    <link href='http://fonts.googleapis.com/css?family=Grand+Hotel' rel='stylesheet' type='text/css'>
+
+</head>
+<style>
+  .user-box {
+    text-align: center;
+    display: inline-block;
+  }
+
+  .shipEm-select {
+    display:flex;
+    justify-content:center;
+    align-items:center;
+  }
+
+  .shipEm-select > .center {
+    margin: 0px 30px;
+  }
+
+  textarea {
+    border-radius: 5px;
+  }
+
+  .fade-enter-active, .fade-leave-active {
+    transition: opacity .5s;
+  }
+
+  .fade-enter, .fade-leave-to {
+    opacity: 0;
+  }
+
+  body {
+    background-color: #f4eeeb;
+  }
+
+</style>
+<body>
+  <div id="navbar">
+
+      <nav class="navbar navbar-ct-red" role="navigation">
+
+        <div class="container-fluid">
+
+          <div class="navbar-header">
+
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+
+              <span class="sr-only">Toggle navigation</span>
+
+              <span class="icon-bar"></span>
+
+              <span class="icon-bar"></span>
+
+              <span class="icon-bar"></span>
+
+            </button>
+
+            <a class="navbar-brand" href="#" v-on:click="changeActive('home')">Ship Em</a>
+
+          </div>
+
+          <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+
+            <ul class="nav navbar-nav">
+
+              <li v-bind:class="{ active: addFriendActive }" v-on:click="changeActive('friend')"><a href="#">Add Friends</a></li>
+
+              <li v-bind:class="{ active: checkRelActive }" v-on:click="changeActive('check')"><a href="#">Check Ships</a></li>
+
+            </ul>
+
+          </div><!-- /.navbar-collapse -->
+
+        </div><!-- /.container-fluid -->
+
+      </nav>
+
+  </div><!--  end navbar -->
+
+  <p>.</p>
+  <p>.</p>
+  <p>.</p>
+
+  <div align="center" id="alerts">
+    <alert-notification v-for="alert in allAlerts" v-bind:message="alert.message" v-bind:type="alert.type" :key="alert.id"></alert-notification>
+  </div>
+
+  <div align="center" id="ship-section" v-if="show">
+    <div id="ship-menu" v-if="showShipMenu">
+      <button class="btn btn-block btn-lg btn-info btn-simple" v-on:click="resetShipMenu">Reset</button><br>
+      <div class="shipEm-select">
+        <user-span v-bind:friend="firstShippedUser"></user-span>
+        <span class="center"> ~and~ </span>
+        <user-span v-bind:friend="secondShippedUser"></user-span>
+      </div>
+
+      <div class="row">
+        <div class="col-sm-10 col-sm-offset-1">
+          <textarea rows="8" class="form-control" v-if="showShipButton" v-on:change="textChangedTrue"
+            :placeholder="'Give ' + firstShippedUser.firstName + ' and ' + secondShippedUser.firstName + ' some ideas of things they have in common so they know why you shipped them and what they can talk about!'">
+          </textarea>
+        </div>
+      </div>
+      <br><br>
+    <button class="btn btn-lg btn-info btn-fill" v-if="showShipButton" v-on:click="shipEm">SHIP 'EM</button>
+      <hr>
+    </div>
+
+    <div id="post-ship" v-if="showPostShip">
+      <p>Here's your shipping label!</p>
+      <p>{{shipLabel}}</p>
+      <p>Send it to {{firstShippedUser.firstName}} and {{secondShippedUser.firstName}} and they can use it to connect.</p>
+    </div>
+
+    <div id="friends">
+      <table>
+        <tr v-for="friend in friends">
+          <td v-on:click="alertClick(friend)"><user-span v-bind:friend="friend"></user-span></td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <div align="center" id="addFriend-section" v-if="show">
+
+    <h2>Search for your friends.</h2>
+    <div class="col-sm-6 col-sm-offset-3">
+      <div class="form-group">
+        <input type="text" placeholder="Search" class="form-control">
+      </div>
+    <br>
+    <hr>
+    <h2>Or Add them Yourself.</h2>
+    <form>
+      <div class="input-group">
+        <span class="input-group-addon">Gender*</span>
+        <ul class="nav nav-pills ct-red">
+          <li v-bind:class="{ active: selectMale }" v-on:click="selectMale = true;"><a href="#">Male</a></li>
+          <li v-bind:class="{ active: !selectMale }" v-on:click="selectMale = false;"><a href="#">Female</a></li>
+        </ul>
+      </div>
+      <div class="input-group">
+        <span class="input-group-addon">First*</span>
+        <input type="text" class="form-control" placeholder="First Name" v-model="firstName">
+      </div>
+      <div class="input-group">
+        <span class="input-group-addon">Last</span>
+        <input type="text" class="form-control" placeholder="Last Name" v-model="lastName">
+      </div>
+      <br>
+      <div class="input-group">
+        <span class="input-group-addon">Email</span>
+        <input type="text" class="form-control" placeholder="Email Address" v-model="email">
+      </div>
+      <div class="input-group">
+        <span class="input-group-addon">Phone</span>
+        <input type="text" class="form-control" placeholder="(xxx)xxx-xxxx" v-model="phone">
+      </div>
+      <br>
+      <button href="#fakelink" class="btn btn-block btn-lg btn-info btn-round" v-on:click="addFriendToAccount">Add Friend</button>
+    </form>
+
+  </div>
+  </div>
+
+  <div align="center" id="checkShips-section" v-if="show">
+      <p v-if="myShips.length === 0">Oops! looks like you don't have any ships yet. Add your friends and pair them up and then come back here to check in!</p>
+      <table style="width: 100%; text-align: center;">
+        <tr v-for="ship in myShips">
+          <td><user-ship v-bind:data="ship"></user-ship></td>
+        </tr>
+      </table>
+  </div>
+
+</body>
+
+<script src="jquery/jquery-1.10.2.js" type="text/javascript"></script>
+<script src="assets/js/jquery-ui-1.10.4.custom.min.js" type="text/javascript"></script>
+
+<script src="bootstrap3/js/bootstrap.js" type="text/javascript"></script>
+<script src="assets/js/gsdk-checkbox.js"></script>
+<script src="assets/js/gsdk-radio.js"></script>
+<script src="assets/js/gsdk-bootstrapswitch.js"></script>
+<script src="assets/js/get-shit-done.js"></script>
+  <script src="assets/js/custom.js"></script>
+
+<script type="text/javascript">
+
+  $('.btn-tooltip').tooltip();
+  $('.label-tooltip').tooltip();
+  $('.pick-class-label').click(function(){
+      var new_class = $(this).attr('new-class');
+      var old_class = $('#display-buttons').attr('data-class');
+      var display_div = $('#display-buttons');
+      if(display_div.length) {
+      var display_buttons = display_div.find('.btn');
+      display_buttons.removeClass(old_class);
+      display_buttons.addClass(new_class);
+      display_div.attr('data-class', new_class);
+      }
+  });
+  $( "#slider-range" ).slider({
+  range: true,
+  min: 0,
+  max: 500,
+  values: [ 75, 300 ],
+});
+$( "#slider-default" ).slider({
+    value: 70,
+    orientation: "horizontal",
+    range: "min",
+    animate: true
+});
+$('.carousel').carousel({
+    interval: 4000
+  });
+
+
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+<script>
+
+  function Friend(info = {firstName: '', lastName: '', gender: '', photo: 'assets/img/empty.png'}){
+    this.ID = Friend.NextID++;
+    this.firstName = info.firstName;
+    this.lastname = info.lastName;
+    this.gender = info.gender;
+    this.photo = info.photo;
+    console.log(this.photo);
+    console.log(this.photo === undefined);
+    console.log(this.gender);
+    if (this.photo === '' || this.photo === undefined) {
+      console.log('set');
+      this.photo = (this.gender === 'M') ? 'assets/img/PlaceholderMan.png' : 'assets/img/PlaceholderWoman.png';
+    }
+    console.log(this.photo);
+  }
+  Friend.NextID = 0;
+
+  function Relationship(info = {}){
+    this.ID = Relationship.NextID++;
+    this.A = info.A;
+    this.B = info.B;
+    this.shipProgress = info.shipProgress;
+    this.issueMessage = info.issueMessage;
+    this.statusMessage = info.statusMessage;
+    this.connected = info.connected;
+  }
+  Relationship.NextID = 0;
+
+  Vue.component('user-span', {
+    props: ['friend'],
+    template: '<span class="user-box"><img :src="friend.photo" :alt="friend.firstName" class="img-circle" width=100><p>{{friend.firstName}}</p></span>'
+  });
+
+  Vue.component('user-ship', {
+    data: function() {
+      return {
+        FriendA: new Friend(),
+        FriendB: new Friend(),
+        shipProgress: {width: '0%'},
+        connectedMessage: 'Not Connected',
+        issue: true,
+        showIssueSection: false,
+        issueMessage: 'No ship specified',//'It looks like Brandon still hasnt created an account on shippem! Once he does he can use the shipping code ABCDEFG to connect with Emily.',
+        statusMessage: 'No ship specified',//'It looks like Brandon and Emily are getting along great! congrats on the great shipment!'
+      }
+    },
+    props: ['data'],
+    template: '<div style="background-color: #c9c0bb; padding-top: 2px; margin: 5px 10px; border-radius: 5px;" v-on:click="toggleIssueReport">' +
+    '<h5>{{ connectedMessage }} <i class="fa fa-exclamation-triangle" v-if="issue"></i></h5><hr />' +
+    '<transition name="fade">' +
+      '<p style="background-color: #a89c95; margin-top: -20px" v-if="showIssueSection"> {{issueMessage}} </p>' +
+    '</transition>' +
+    '<div class="row"><user-span :friend=FriendA class="col-sm-3 col-sm-offset-1"></user-span> ' +
+    '<div class="col-sm-4" style="padding: 20px;">'+
+      '<p> {{statusMessage}} </p>' +
+      '<div class="progress">' +
+        '<div class="progress-bar progress-bar-info" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" :style="shipProgress">' +
+          '<span class="sr-only">{{shipProgress.width}} Complete</span>' +
+        '</div>' +
+      '</div>' +
+      '<p style="margin-top: -20px;">Relationship {{shipProgress.width}} complete</p>' +
+    '</div>' +
+    '<user-span :friend=FriendB class="col-sm-3"></user-span></div></div>',
+    created: function () {
+      this.FriendA = this.data.A;
+      this.FriendB = this.data.B;
+      this.shipProgress = {width: this.data.shipProgress + '%'};
+      this.connectedMessage = (this.data.connected) ? 'Connected' : 'Not Connected';
+      this.issue = !(this.data.issueMessage === '');
+      this.issueMessage = this.data.issueMessage;
+      this.statusMessage = this.data.statusMessage;
+    },
+    methods: {
+      toggleIssueReport() {
+        if (this.issue) {
+          this.showIssueSection = !this.showIssueSection;
+        }
+      }
+    }
+  });
+
+  Vue.component('alert-notification', {
+    data: function() {
+      return {
+        alertClass: {
+          alert: true,
+          'alert-success': false,
+          'alert-info': false,
+          'alert-warning': false,
+          'alert-danger': false,
+        }
+      }
+    },
+    props: ['message','type'],
+    template: '<transition name="fade"' +
+    '<div :class="alertClass" style="margin-top: -18px;">' +
+      '<div class="container">' +
+        '{{ message }}' +
+      '</div>' +
+    '</div>'+
+    '</transition>',
+    created: function() {
+      switch (this.type) {
+        case 'success':
+          this.alertClass['alert-success'] = true;
+        break;
+        case 'info':
+          this.alertClass['alert-info'] = true;
+        break;
+        case 'warning':
+          this.alertClass['alert-warning'] = true;
+        break;
+        default:
+          this.alertClass['alert-danger'] = true;
+        break;
+      }
+    }
+  });
+
+  var alerts = new Vue({
+    el: '#alerts',
+    data: {
+      nextID: 0,
+      allAlerts: []
+    },
+    methods: {
+      addAlert: function(message, type) {
+        let thisID = this.nextID++;
+        this.allAlerts.push({id: thisID, message: message, type: type});
+        window.setTimeout(() => {alerts.removeByID(thisID)}, 3000);
+      },
+      removeByID: function(id) {
+        this.allAlerts.forEach((alert, index) => {
+          if (alert.id === id) {
+            this.allAlerts.splice(index, 1);
+          }
+        });
+      }
+    }
+  });
+
+  var nav = new Vue({
+    el: '#navbar',
+    data: {
+      homeActive: true,
+      addFriendActive: false,
+      checkRelActive: false
+    },
+    methods: {
+      changeActive: function(active) {
+        this.homeActive = false;
+        this.addFriendActive = false;
+        this.checkRelActive = false;
+        switch(active) {
+          case "home":
+            this.homeActive = true;
+            break;
+          case "friend":
+            this.addFriendActive = true;
+            break;
+          case "check":
+            this.checkRelActive = true;
+            break;
+        }
+        shipSection.show = this.homeActive;
+        addFriends.show = this.addFriendActive;
+        checkShips.show = this.checkRelActive;
+      }
+    }
+  });
+
+  var checkShips = new Vue({
+    el: '#checkShips-section',
+    data: {
+      show: false,
+      myShips: [],
+    }
+  });
+
+  var addFriends = new Vue({
+    el: '#addFriend-section',
+    data: {
+      show: false,
+      firstName: '',
+      lastName: '',
+      email: '',
+      phone: '',
+      addedFirst: '',
+      selectMale: true,
+    },
+    methods: {
+      addFriendToAccount: function(){
+        let g = (this.selectMale) ? 'M' : 'F'
+        shipSection.friends.push(new Friend({firstName: this.firstName, gender: g}));
+        this.addedFirst = this.firstName;
+        alerts.addAlert(this.addedFirst + ' is now in your list of shipmates', 'success');
+        this.reset();
+      },
+      reset: function(){
+        this.firstName = '';
+        this.lastName = '';
+        this.email = '';
+        this.phone = '';
+      }
+    }
+  });
+
+  var shipSection = new Vue({
+    el: '#ship-section',
+    data: {
+      show: true,
+      showPostShip: false,
+      firstShippedUser: new Friend(),
+      secondShippedUser: new Friend(),
+      shipLabel: '',
+      showShipMenu: false,
+      showShipButton: false,
+      textChanged: false,
+      friends: [],
+    },
+    methods: {
+      generateShipLabel: function(){
+        let ref = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        let ret = '';
+        for (let i = 0; i < 8; i++) {
+          let index = Math.floor(Math.random() * Math.floor(25));
+          ret += ref.substring(index, index + 1);
+        }
+        this.shipLabel = ret;
+      },
+      resetPostShip: function(){
+        this.showPostShip = false;
+        this.firstShippedUser = new Friend();
+        this.secondShippedUser = new Friend();
+        this.shipLabel = '';
+      },
+      addPerson: function(person) {
+        if (this.firstShippedUser.firstName === '') {
+          this.firstShippedUser = person;
+          this.showShipMenu = true;
+          return true;
+        } else if (this.secondShippedUser.firstName === ''){
+          this.secondShippedUser = person;
+          this.showShipButton = true;
+          return true;
+        }
+        return false;
+      },
+      textChangedTrue: function() {
+        this.textChanged = true;
+      },
+      shipEm: function() {
+        if (!this.textChanged) {
+          //TODO change these alerts to popins using an alerts vue object
+          alerts.addAlert('You need to fill out the message section to ship two people!', 'danger');
+        } else {
+          alerts.addAlert(this.firstShippedUser.firstName + ' and ' + this.secondShippedUser.firstName + 'have been shipped', 'success');
+          this.generateShipLabel();
+          checkShips.myShips.push(new Relationship({
+            A: this.firstShippedUser,
+            B: this.secondShippedUser,
+            shipProgress: 0,
+            connected: false,
+            issueMessage: this.firstShippedUser.firstName + ' and ' + this.secondShippedUser.firstName + ' have not connected yet. You\'ll need to reach out to them and have them set up an account. once they do the can use this code to connect: ' + this.shipLabel,
+            statusMessage: 'It looks like ' + this.firstShippedUser.firstName + ' and ' + this.secondShippedUser.firstName + ' havent connected yet.',
+          }));
+          //Reach out to the backend and ship these people
+          this.showPostShip = true;
+          this.resetShipMenu();
+        }
+      },
+      resetShipMenu: function() {
+        this.showShipMenu = false;
+        if (this.firstShippedUser.firstName != ''){
+          this.friends.push(this.firstShippedUser);
+        }
+        if (this.secondShippedUser.firstName != ''){
+          this.friends.push(this.secondShippedUser);
+        }
+        this.firstShippedUser = new Friend();
+        this.secondShippedUser = new Friend();
+        this.showShipButton = false;
+        this.textChanged = false;
+      },
+      alertClick: function(friend){
+        if (this.showPostShip) {
+          this.resetPostShip();
+        }
+        let removed = this.addPerson(friend);
+        if (!removed) {
+          return;
+        }
+        let exit = false;
+        this.friends.forEach((f, i) => {
+          if (exit) { return; }
+          if (f.firstName == friend.firstName) {
+            this.friends.splice(i, 1);
+            exit = true;
+          }
+        });
+      }
+    }
+  });
+
+</script>
+
+</html>
